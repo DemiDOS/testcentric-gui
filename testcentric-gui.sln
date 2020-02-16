@@ -95,6 +95,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "testcentric-agent", "src\Te
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "testcentric-agent-x86", "src\TestEngine\agents\testcentric-agent-x86.csproj", "{DEDFA50A-7D77-44A3-8441-AF8DFDA48410}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "nuget", "nuget", "{0BC204F0-2240-405E-A71C-E55B75325230}"
+	ProjectSection(SolutionItems) = preProject
+		nuget\TestCentric.GuiRunner.nuspec = nuget\TestCentric.GuiRunner.nuspec
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -227,6 +232,7 @@ Global
 		{6C0D9A1D-6BC5-4830-82C5-FCC3502776C4} = {EA14AF63-0F5D-4938-9C87-6EC67A961DB3}
 		{FCCE65B8-D7DF-42AB-A520-C0AB4358F055} = {EA14AF63-0F5D-4938-9C87-6EC67A961DB3}
 		{DEDFA50A-7D77-44A3-8441-AF8DFDA48410} = {EA14AF63-0F5D-4938-9C87-6EC67A961DB3}
+		{0BC204F0-2240-405E-A71C-E55B75325230} = {A65042E1-D8BC-48DD-8DE1-F0991F07EA77}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {CDFF439B-8888-4133-8734-86F4F899BC40}

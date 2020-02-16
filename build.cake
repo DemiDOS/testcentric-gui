@@ -67,6 +67,7 @@ if (usingXBuild)
 string PROJECT_DIR = Context.Environment.WorkingDirectory.FullPath + "/";
 string PACKAGE_DIR = PROJECT_DIR + "package/";
 string PACKAGE_TEST_DIR = PACKAGE_DIR + "test/";
+string NUGET_DIR = PROJECT_DIR + "nuget/";
 string CHOCO_DIR = PROJECT_DIR + "choco/";
 string BIN_DIR = PROJECT_DIR + "bin/" + configuration + "/";
 string ENGINE_BIN_DIR = PROJECT_DIR + "src/TestEngine/bin/" + configuration + "/net20/";
@@ -74,6 +75,7 @@ string ENGINE_TESTS_BIN_DIR = PROJECT_DIR + "src/TestEngine/bin/" + configuratio
 
 // Packaging
 string PACKAGE_NAME = "testcentric-gui";
+string NUGET_PACKAGE_NAME = "TestCentric.GuiRunner";
 
 // Solution
 string SOLUTION = "testcentric-gui.sln";
@@ -214,11 +216,15 @@ Task("Test")
 // PACKAGING
 //////////////////////////////////////////////////////////////////////
 
-var baseFiles = new string[]
+var rootFiles = new string[]
 {
     BIN_DIR + "LICENSE.txt",
     BIN_DIR + "NOTICES.txt",
-    BIN_DIR + "CHANGES.txt",
+    BIN_DIR + "CHANGES.txt"
+};
+
+var baseFiles = new string[]
+{
     BIN_DIR + "testcentric.exe",
     BIN_DIR + "testcentric.exe.config",
     BIN_DIR + "tc-next.exe",
@@ -269,12 +275,48 @@ Task("PackageZip")
     {
         CreateDirectory(PACKAGE_DIR);
 
-        var zipFiles = new List<string>(baseFiles);
+        var zipFiles = new List<string>();
+		zipFiles.AddRange(rootFiles);
+		zipFiles.AddRange(baseFiles);
         if (!usingXBuild)
             zipFiles.AddRange(pdbFiles);
 
         Zip(BIN_DIR, File(PACKAGE_DIR + PACKAGE_NAME + "-" + packageVersion + ".zip"), zipFiles);
     });
+
+//////////////////////////////////////////////////////////////////////
+// PACKAGE NUGET
+//////////////////////////////////////////////////////////////////////
+
+Task("PackageNuGet")
+	.IsDependentOn("Build")
+	.Does(() =>
+	{
+        CreateDirectory(PACKAGE_DIR);
+
+        var content = new List<NuSpecContent>();
+
+		foreach (string file in rootFiles)
+			content.Add(new NuSpecContent() { Source = file });
+
+		var nugetFiles = new[] { NUGET_DIR + "testcentric.nuget.addins" };
+
+        var sources = usingXBuild
+            ? new[] { baseFiles, nugetFiles }
+            : new[] { baseFiles, nugetFiles, pdbFiles };
+
+		foreach (var source in sources)
+			foreach (string file in source)
+				content.Add(new NuSpecContent() { Source = file, Target = "tools" });
+
+        NuGetPack(NUGET_DIR + NUGET_PACKAGE_NAME + ".nuspec", 
+            new NuGetPackSettings()
+            {
+                Version = packageVersion,
+                OutputDirectory = PACKAGE_DIR,
+                Files = content
+            });
+	});
 
 //////////////////////////////////////////////////////////////////////
 // PACKAGE CHOCOLATEY
@@ -287,6 +329,10 @@ Task("PackageChocolatey")
         CreateDirectory(PACKAGE_DIR);
 
         var content = new List<ChocolateyNuSpecContent>();
+
+		foreach (string file in rootFiles)
+			content.Add(new ChocolateyNuSpecContent() { Source = file });
+
         var sources = usingXBuild
             ? new[] { baseFiles, chocoFiles }
             : new[] { baseFiles, chocoFiles, pdbFiles };

@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Do not remove this test for UTF-8: if “Ω” doesn’t appear as greek uppercase omega letter enclosed in quotation marks, you should use an editor that supports UTF-8, not this one. -->
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>TestCentric.GuiRunner</id>
+    <title>TestCentric Runner for NUnit</title>
+    <version>0.0.0</version>
+    <authors>Charlie Poole</authors>
+    <owners>Charlie Poole</owners>
+    <license type="file">LICENSE.txt</license>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <projectUrl>http://test-centric.org</projectUrl>
+    <repository type="git" url="https://github.com/TestCentric/testcentric-gui"/>
+    <iconUrl>https://cdn.rawgit.com/TestCentric/resources/master/images/icon/nunit_256.png</iconUrl>
+    <summary>TestCentric GUI runner for the NUnit 3 unit-testing framework.</summary>
+    <description>
+      This package includes the TestCentric GUI runner and incorporates the NUnit test engine.
+    </description>
+    <releaseNotes>https://raw.githubusercontent.com/TestCentric/testcentric-gui/master/CHANGES.txt</releaseNotes>
+    <language>en-US</language>
+    <tags>testcentric nunit gui runner test centric testing tdd</tags>
+    <copyright>Copyright (c) 2018-2019 Charlie Poole</copyright>
+  </metadata>
+</package>
