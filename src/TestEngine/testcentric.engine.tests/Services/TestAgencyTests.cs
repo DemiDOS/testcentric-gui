@@ -20,7 +20,7 @@ namespace TestCentric.Engine.Services
             var services = new ServiceContext();
             services.Add(new FakeRuntimeService());
             // Use a different URI to avoid conflicting with the "real" TestAgency
-            _testAgency = new TestAgency("TestAgencyTest", 0);
+            _testAgency = new TestAgency("TestAgencyTest");
             services.Add(_testAgency);
             services.ServiceManager.StartServices();
         }

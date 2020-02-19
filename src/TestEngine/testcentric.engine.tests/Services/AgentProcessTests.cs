@@ -24,7 +24,7 @@ namespace TestCentric.Engine.Services
         public void SetUp()
         {
             _agency = Substitute.For<TestAgency>();
-            _agency.RemotingUrl.ReturnsForAnyArgs(REMOTING_URL);
+            _agency.GetConnectionPoint(null).ReturnsForAnyArgs(REMOTING_URL);
             _package = new TestPackage("junk.dll");
             // Only required setting, some tests may change this
             _package.Settings[EnginePackageSettings.RuntimeFramework] = "net-4.5";
@@ -88,7 +88,6 @@ namespace TestCentric.Engine.Services
             {
                 Assert.That(startInfo.FileName, Is.EqualTo(process.AgentExePath));
                 Assert.That(startInfo.Arguments, Is.EqualTo(process.AgentArgs.ToString()));
-                Assert.That(startInfo.EnvironmentVariables["COMPLUS_Version"], Is.EqualTo($"v{targetRuntime.ClrVersion.ToString(3)}"));
             }
         }
 

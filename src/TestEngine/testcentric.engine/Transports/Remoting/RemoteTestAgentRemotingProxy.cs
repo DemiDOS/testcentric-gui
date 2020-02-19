@@ -14,11 +14,11 @@ namespace TestCentric.Engine.Agents
     /// RemoteTestAgentProxy wraps a RemoteTestAgent so that certain
     /// of its properties may be accessed without remoting.
     /// </summary>
-    internal class RemoteTestAgentProxy : ITestAgent
+    internal class RemoteTestAgentRemotingProxy : ITestAgent
     {
         private ITestAgent _remoteAgent;
 
-        public RemoteTestAgentProxy(ITestAgent remoteAgent, Guid id)
+        public RemoteTestAgentRemotingProxy(ITestAgent remoteAgent, Guid id)
         {
             _remoteAgent = remoteAgent;
 

@@ -15,13 +15,14 @@ using System.Runtime.Remoting.Channels.Tcp;
 using TestCentric.Common;
 using TestCentric.Engine.Helpers;
 using TestCentric.Engine.Internal;
+using TestCentric.Engine.Services;
 
-namespace TestCentric.Engine.Services.Transports
+namespace TestCentric.Engine.Transports.Remoting
 {
     /// <summary>
     /// Summary description for TestAgencyRemotingTransport.
     /// </summary>
-    public class TestAgencyRemotingTransport : TestAgencyTransport
+    public class TestAgencyRemotingTransport : MarshalByRefObject, ITestAgencyTransport
     {
         private static readonly Logger log = InternalTrace.GetLogger(typeof(TestAgencyRemotingTransport));
 
@@ -33,16 +34,25 @@ namespace TestCentric.Engine.Services.Transports
 
         private object _theLock = new object();
 
-        public TestAgencyRemotingTransport(TestAgency agency, string uri, int port)
-            : base (agency)
+        public TestAgencyRemotingTransport(TestAgency agency)
         {
-            _uri = uri;
-            _port = port;
+            Agency = agency;
+            _uri = agency.Name;
+            _port = 0; // Until Start() is called
         }
 
-        public string ServerUrl => string.Format("tcp://127.0.0.1:{0}/{1}", _port, _uri);
+        public TestAgency Agency { get; }
 
-        public override void Start()
+        public string ConnectionPoint => ServerUrl;
+
+        public string ServerUrl => $"tcp://127.0.0.1:{_port}/{_uri}";
+
+        public bool IsRuntimeSupported(RuntimeFramework framework)
+        {
+            return framework.Runtime == Runtime.Net || framework.Runtime == Runtime.Mono;
+        }
+
+        public void Start()
         {
             if (_uri != null && _uri != string.Empty)
             {
@@ -67,7 +77,7 @@ namespace TestCentric.Engine.Services.Transports
         }
 
         [System.Runtime.Remoting.Messaging.OneWay]
-        public override void Stop()
+        public void Stop()
         {
             lock( _theLock )
             {
@@ -95,12 +105,44 @@ namespace TestCentric.Engine.Services.Transports
             }
         }
 
+        public void Register(ITestAgent agent)
+        {
+            Agency.Register(agent);
+        }
+
         public void WaitForStop()
         {
             lock( _theLock )
             {
                 Monitor.Wait( _theLock );
             }
+        }
+
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
+            Dispose(true);
+        }
+
+        private bool _disposed = false;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                    Stop();
+
+                _disposed = true;
+            }
+        }
+
+        /// <summary>
+        /// Overridden to cause object to live indefinitely
+        /// </summary>
+        public override object InitializeLifetimeService()
+        {
+            return null;
         }
     }
 }

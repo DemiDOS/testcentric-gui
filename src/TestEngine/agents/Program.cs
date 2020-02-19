@@ -11,6 +11,12 @@ using TestCentric.Common;
 using TestCentric.Engine.Internal;
 using TestCentric.Engine.Services;
 using TestCentric.Engine.Helpers;
+#if NET40 || NETCOREAPP2_1
+using TestCentric.Engine.Transports.NamedPipes;
+#endif
+#if NETFRAMEWORK
+using TestCentric.Engine.Transports.Remoting;
+#endif
 
 namespace TestCentric.Engine.Agents
 {
@@ -25,6 +31,17 @@ namespace TestCentric.Engine.Agents
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
+        /// <param name="args">
+        /// Positional Arguments:
+        ///   AgentId: A Guid representing this agent. (required)
+        ///   AgencyUrl: Some sort of URL (depends on transport) to connect to the agency. (required)
+        /// Options:
+        ///   --pid: The id of the Process that invoked this agent. (required)
+        ///   --trace: TraceLevel to use for internal trace (defaults to Off)
+        ///   --debug: Launches an attached debugger when the tests start to run
+        ///   --debug-agent: Launches debugger in the agent itself. (Debug build only)
+        ///   --work: The work directory to be used for output. (defaults to current directory)
+        /// </param>
         [STAThread]
         public static void Main(string[] args)
         {
@@ -100,7 +117,7 @@ namespace TestCentric.Engine.Agents
 #if NET20 || NET40
                 new TestAgentRemotingTransport(Agent, AgencyUrl);
 #else
-                new TestAgentNetCoreTransport(Agent);
+                new TestAgentNamedPipeTransport(Agent, AgencyUrl);
 #endif
             try
             {

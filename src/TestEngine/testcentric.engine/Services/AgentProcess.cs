@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See LICENSE.txt in root directory.
 // ***********************************************************************
 
-#if NETFRAMEWORK
+#if NETSTANDARD2_0 || NET40
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -31,18 +31,19 @@ namespace TestCentric.Engine.Services
             bool loadUserProfile = package.GetSetting(EnginePackageSettings.LoadUserProfile, false);
             string workDirectory = package.GetSetting(EnginePackageSettings.WorkDirectory, string.Empty);
 
-            AgentArgs = new StringBuilder($"{agentId} {agency.RemotingUrl} --pid={Process.GetCurrentProcess().Id}");
+            var args = new StringBuilder($"{agentId} {agency.GetConnectionPoint(TargetRuntime)} --pid={Process.GetCurrentProcess().Id}");
 
             // Set options that need to be in effect before the package
             // is loaded by using the command line.
             if (traceLevel != "Off")
-                AgentArgs.Append(" --trace=").EscapeProcessArgument(traceLevel);
+                args.Append(" --trace=").EscapeProcessArgument(traceLevel);
             if (debugAgent)
-                AgentArgs.Append(" --debug-agent");
+                args.Append(" --debug-agent");
             if (workDirectory != string.Empty)
-                AgentArgs.Append(" --work=").EscapeProcessArgument(workDirectory);
+                args.Append(" --work=").EscapeProcessArgument(workDirectory);
 
             AgentExePath = GetTestAgentExePath(TargetRuntime, runAsX86);
+            AgentArgs = args.ToString();
 
             log.Debug("Using testcentric-agent at " + AgentExePath);
 
@@ -60,19 +61,18 @@ namespace TestCentric.Engine.Services
             else if (TargetRuntime.Runtime == Runtime.Net)
             {
                 StartInfo.FileName = AgentExePath;
-                // Override the COMPLUS_Version env variable, this would cause CLR meta host to run a CLR of the specific version
-                string envVar = "v" + TargetRuntime.ClrVersion.ToString(3);
-                StartInfo.EnvironmentVariables["COMPLUS_Version"] = envVar;
-                // Leave a marker that we have changed this variable, so that the agent could restore it for any code or child processes running within the agent
-                string cpvOriginal = Environment.GetEnvironmentVariable("COMPLUS_Version");
-                StartInfo.EnvironmentVariables["TestAgency_COMPLUS_Version_Original"] = string.IsNullOrEmpty(cpvOriginal) ? "NULL" : cpvOriginal;
-                StartInfo.Arguments = AgentArgs.ToString();
+                StartInfo.Arguments = AgentArgs;
                 StartInfo.LoadUserProfile = loadUserProfile;
+            }
+            else if (TargetRuntime.Runtime == Runtime.NetCore)
+            {
+                StartInfo.FileName = "dotnet";
+                StartInfo.Arguments = $"{AgentExePath} {AgentArgs}";
             }
             else
             {
                 StartInfo.FileName = AgentExePath;
-                StartInfo.Arguments = AgentArgs.ToString();
+                StartInfo.Arguments = AgentArgs;
             }
         }
 
@@ -80,7 +80,7 @@ namespace TestCentric.Engine.Services
 
         internal RuntimeFramework TargetRuntime { get; }
         internal string AgentExePath { get; }
-        internal StringBuilder AgentArgs { get; }
+        internal string AgentArgs { get; }
 
         public Process LaunchProcess()
         {

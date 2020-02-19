@@ -185,10 +185,6 @@ namespace TestCentric.Engine.Services
             if (Environment.OSVersion.Platform == PlatformID.Win32NT && imageTargetFrameworkNameSetting.Length > 0)
             {
                 targetFramework = RuntimeFramework.FromFrameworkName(imageTargetFrameworkNameSetting);
-
-                // TODO: temporary exception thrown until we implement .NET Core
-                if (targetFramework.Runtime == Runtime.NetCore)
-                    throw new NotImplementedException("The GUI does not yet support .NET Core tests");
             }
             else
             {

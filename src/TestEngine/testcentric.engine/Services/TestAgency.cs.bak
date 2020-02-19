@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See LICENSE.txt in root directory.
 // ***********************************************************************
 
-#if NETSTANDARD2_0 || NET40
+#if !NETSTANDARD2_0
 using System;
 using System.IO;
 using System.Threading;
@@ -12,14 +12,9 @@ using System.Text;
 using TestCentric.Common;
 using TestCentric.Engine.Agents;
 using TestCentric.Engine.Internal;
-using TestCentric.Engine.Transports.NamedPipes;
-#if NETFRAMEWORK
-using TestCentric.Engine.Transports.Remoting;
-#endif
 
 namespace TestCentric.Engine.Services
 {
-    using System.Collections.Generic;
     using Transports;
 
     /// <summary>
@@ -33,47 +28,28 @@ namespace TestCentric.Engine.Services
     public class TestAgency : ITestAgency, IService
     {
         private static readonly Logger log = InternalTrace.GetLogger(typeof(TestAgency));
-        private const string DEFAULT_AGENCY_NAME = "TestAgency";
 
         private readonly AgentStore _agentStore = new AgentStore();
 
         private IRuntimeFrameworkService _runtimeService;
 
-        public TestAgency() : this( DEFAULT_AGENCY_NAME ) { }
+        // Transports used for various target runtimes
+        private TestAgencyRemotingTransport _remotingTransport; // .NET Framework
+        private TestAgencyNamedPipeTransport _namedPipeTransport; // .NET Core
 
-        public TestAgency(string name)
+        public TestAgency() : this( "TestAgency", 0 ) { }
+
+        internal virtual string RemotingUrl => _remotingTransport.ServerUrl;
+
+        public TestAgency(string uri, int port )
         {
-            Name = name;
-            AddTransports();
+            _remotingTransport = new TestAgencyRemotingTransport(this, uri, port);
+            _namedPipeTransport = new TestAgencyNamedPipeTransport(this);
         }
-
-        // TODO: Inject transports externally
-        private void AddTransports()
-        {
-            Transports = new List<ITestAgencyTransport>();
-#if NETFRAMEWORK
-            Transports.Add(new TestAgencyRemotingTransport(this));
-#endif
-            Transports.Add(new TestAgencyNamedPipeTransport(this));
-        }
-
-        public List<ITestAgencyTransport> Transports { get; private set; }
-
-        public string Name { get; }
 
         public void Register(ITestAgent agent)
         {
             _agentStore.Register(agent);
-        }
-
-        // This is virtual so NSubstitute can mock it
-        public virtual string GetConnectionPoint(RuntimeFramework framework)
-        {
-            foreach (var transport in Transports)
-                if (transport.IsRuntimeSupported(framework))
-                    return transport.ConnectionPoint;
-
-            return "UNDEFINED";
         }
 
         public ITestAgent GetAgent(TestPackage package, int waitTime)
@@ -122,14 +98,14 @@ namespace TestCentric.Engine.Services
                 if (_agentStore.IsReady(agentId, out var agent))
                 {
                     log.Debug($"Returning new agent {agentId:B}");
-                    return agent;
+                    return new RemoteTestAgentProxy(agent, agentId);
                 }
             }
 
             return null;
         }
 
-        private void OnAgentExit(Process process, Guid agentId)
+        internal void OnAgentExit(Process process, Guid agentId)
         {
             _agentStore.MarkTerminated(agentId);
 
@@ -174,8 +150,7 @@ namespace TestCentric.Engine.Services
         {
             try
             {
-                foreach (var transport in Transports)
-                    transport.Stop();
+                _remotingTransport.Stop();
             }
             finally
             {
@@ -191,8 +166,8 @@ namespace TestCentric.Engine.Services
             else
             try
             {
-                foreach (var transport in Transports)
-                    transport.Start();
+                _remotingTransport.Start();
+                _namedPipeTransport.Start();
 
                 Status = ServiceStatus.Started;
             }

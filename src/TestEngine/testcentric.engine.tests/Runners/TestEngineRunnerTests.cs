@@ -52,7 +52,7 @@ namespace TestCentric.Engine.Runners
 #if !NETCOREAPP2_1
             _services.Add(new Services.DomainManager());
             _services.Add(new Services.RuntimeFrameworkService());
-            _services.Add(new Services.TestAgency("ProcessRunnerTests", 0));
+            _services.Add(new Services.TestAgency("ProcessRunnerTests"));
 #endif
             _services.Add(new Services.DriverService());
             _services.Add(new Services.DefaultTestRunnerFactory());

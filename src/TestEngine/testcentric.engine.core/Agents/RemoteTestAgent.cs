@@ -7,6 +7,7 @@
 using System;
 using TestCentric.Common;
 using TestCentric.Engine.Internal;
+using TestCentric.Engine.Transports;
 
 namespace TestCentric.Engine.Agents
 {
@@ -27,7 +28,7 @@ namespace TestCentric.Engine.Agents
         public RemoteTestAgent(Guid agentId, IServiceLocator services)
             : base(agentId, services) { }
 
-        public TestAgentTransport Transport;
+        public ITestAgentTransport Transport;
 
         public int ProcessId => System.Diagnostics.Process.GetCurrentProcess().Id;
 
