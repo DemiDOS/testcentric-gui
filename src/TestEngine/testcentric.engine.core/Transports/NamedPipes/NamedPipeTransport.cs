@@ -23,6 +23,8 @@ namespace TestCentric.Engine.Transports.NamedPipes
             IsConnected = pipeStream.IsConnected;
         }
 
+        protected static bool RunningOnWindows => Path.DirectorySeparatorChar == '\\';
+
         public PipeStream PipeStream { get; }
 
         public bool IsConnected { get; private set; }

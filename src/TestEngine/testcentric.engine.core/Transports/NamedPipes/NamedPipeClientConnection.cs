@@ -6,6 +6,7 @@
 #if NET40 || NETSTANDARD2_0
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.IO.Pipes;
 using System.Text;
 
@@ -28,13 +29,17 @@ namespace TestCentric.Engine.Transports.NamedPipes
 
         protected static NamedPipeClientStream CreateNamedPipeClientStream(string name)
         {
-            return new NamedPipeClientStream(".", name, PipeDirection.InOut, PipeOptions.Asynchronous | PipeOptions.WriteThrough);
+            var options = RunningOnWindows
+                ? PipeOptions.Asynchronous | PipeOptions.WriteThrough
+                : PipeOptions.Asynchronous;
+            return new NamedPipeClientStream(".", name, PipeDirection.InOut, options);
         }
 
         public void Connect(int timeout)
         {
             _clientStream.Connect(timeout);
-            _clientStream.ReadMode = PipeTransmissionMode.Message;
+            if (RunningOnWindows)
+                _clientStream.ReadMode = PipeTransmissionMode.Message;
         }
     }
 }

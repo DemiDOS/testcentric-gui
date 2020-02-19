@@ -28,7 +28,9 @@ namespace TestCentric.Engine.Transports.NamedPipes
 
         protected static NamedPipeServerStream CreateNamedPipeServerStream(string name)
         {
-            return new NamedPipeServerStream(name, PipeDirection.InOut, 1, PipeTransmissionMode.Message, PipeOptions.Asynchronous | PipeOptions.WriteThrough);
+            return RunningOnWindows
+                ? new NamedPipeServerStream(name, PipeDirection.InOut, 1, PipeTransmissionMode.Message, PipeOptions.Asynchronous | PipeOptions.WriteThrough)
+                : new NamedPipeServerStream(name, PipeDirection.InOut, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
         }
 
         public void WaitForConnection()
